@@ -1,5 +1,5 @@
 ﻿using eShop.Order.Domain.Entities;
-using eShop.Order.Domain.Repositories;
+using eShop.Order.Domain.Interfaces.Repositories;
 using MongoDB.Driver;
 
 namespace eShop.Order.Infrastructure.Data.Repositories

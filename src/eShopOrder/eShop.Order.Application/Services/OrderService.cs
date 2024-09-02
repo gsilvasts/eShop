@@ -1,7 +1,7 @@
 ﻿using eShop.Order.Application.Interfaces;
 using eShop.Order.Domain.Entities;
 using eShop.Order.Domain.Enum;
-using eShop.Order.Domain.Repositories;
+using eShop.Order.Domain.Interfaces.Repositories;
 
 namespace eShop.Order.Application.Services
 {

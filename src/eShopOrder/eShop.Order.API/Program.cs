@@ -1,8 +1,10 @@
 using eShop.Order.Application.Interfaces;
 using eShop.Order.Application.Services;
-using eShop.Order.Domain.Repositories;
+using eShop.Order.Domain.Interfaces.Messaging;
+using eShop.Order.Domain.Interfaces.Repositories;
 using eShop.Order.Infrastructure.Data;
 using eShop.Order.Infrastructure.Data.Repositories;
+using eShop.Order.Infrastructure.Messaging;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,6 +36,27 @@ builder.Services.AddSingleton<IOrderDatabaseSettings>(sp =>
     }
 
     return new OrderDatabaseSettings(OrdersCollectionName, ConnectionString, DatabaseName);
+});
+
+builder.Services.AddSingleton<IMessageProducer, RabbitMQProducerService>(sp =>
+{
+    var hostName = builder.Configuration["RabbitMQ_HostName"];
+    var queueName = builder.Configuration[key: "RabbitMQ_QueueName"];
+    var userName = builder.Configuration["RabbitMQ_UserName"];
+    var password = builder.Configuration["RabbitMQ_Password"];
+
+    List<string> missingVariables = new List<string>();
+    if (string.IsNullOrEmpty(hostName)) missingVariables.Add("RabbitMQ_HostName");
+    if (string.IsNullOrEmpty(queueName)) missingVariables.Add("RabbitMQ_QueueName");
+    if (string.IsNullOrEmpty(userName)) missingVariables.Add("RabbitMQ_UserName");
+    if (string.IsNullOrEmpty(password)) missingVariables.Add("RabbitMQ_Password");
+
+    if (missingVariables.Count > 0)
+    {
+        throw new Exception($"Missing environment variables: {string.Join(", ", missingVariables)}");
+    }
+
+    return new RabbitMQProducerService(new RabbitMQSettings(hostName, queueName, userName, password));
 });
 
 var app = builder.Build();

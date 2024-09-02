@@ -18,7 +18,11 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "MongoDB_OrdersCollectionName": "Orders",
         "MongoDB_ConnectionString": "mongodb://localhost:27017",
-        "MongoDB_DatabaseName": "OrderServiceDB"
+        "MongoDB_DatabaseName": "OrderServiceDB",
+        "RabbitMQ_HostName": "localhost",
+        "RabbitMQ_UserName": "guest",
+        "RabbitMQ_Password": "guest",
+        "RabbitMQ_QueueName": "OrderServiceQueue"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7035;http://localhost:5175"

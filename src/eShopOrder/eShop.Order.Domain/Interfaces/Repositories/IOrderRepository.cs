@@ -1,6 +1,6 @@
 ﻿using eShop.Order.Domain.Entities;
 
-namespace eShop.Order.Domain.Repositories
+namespace eShop.Order.Domain.Interfaces.Repositories
 {
     public interface IOrderRepository
     {

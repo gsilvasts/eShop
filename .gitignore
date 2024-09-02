@@ -35,6 +35,7 @@ ScaffoldingReadMe.txt
 # VS Code directories
 .vscode/
 
+
 # DotNet lambda package folders
 **/bin/Release/netcoreapp*/publish/
 
