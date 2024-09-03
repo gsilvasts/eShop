@@ -9,5 +9,6 @@ namespace eShop.Order.Application.Interfaces
         Task<OrderViewModel> GetOrderAsync(string orderId, CancellationToken cancellationToken);
         Task<IEnumerable<OrderViewModel>> GetOrdersAsync(CancellationToken cancellationToken);
         Task UpdateOrderAsync(string orderId, OrderInputModel order, CancellationToken cancellationToken);
+        void UpdateOrderPaymentStatus(string orderId, string status);
     }
 }
