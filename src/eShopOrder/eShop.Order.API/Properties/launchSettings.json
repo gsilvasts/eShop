@@ -8,7 +8,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5175"
+      "applicationUrl": "http://localhost:8080"
     },
     "https": {
       "commandName": "Project",
@@ -16,13 +16,13 @@
       "launchUrl": "swagger",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "MongoDB_OrdersCollectionName": "Orders",
-        "MongoDB_ConnectionString": "mongodb://localhost:27017",
-        "MongoDB_DatabaseName": "OrderServiceDB",
-        "RabbitMQ_HostName": "localhost",
-        "RabbitMQ_UserName": "guest",
-        "RabbitMQ_Password": "guest",
-        "RabbitMQ_QueueName": "OrderServiceQueue"
+        "MongoDBOrdersCollectionName": "Orders",
+        "MongoDBConnectionString": "mongodb://localhost:27018",
+        "MongoDBDatabaseName": "OrderServiceDB",
+        "RabbitMQHostName": "localhost",
+        "RabbitMQUserName": "guest",
+        "RabbitMQPassword": "guest",
+        "RabbitMQQueueName": "OrderServiceQueue"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7035;http://localhost:5175"
@@ -42,9 +42,13 @@
       "environmentVariables": {
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080",
-        "MongoDB_OrdersCollectionName": "Orders",
-        "MongoDB_ConnectionString": "mongodb://127.0.0.1:27017",
-        "MongoDB_DatabaseName": "OrderServiceDB"
+        "MongoDBOrdersCollectionName": "Orders",
+        "MongoDBConnectionString": "mongodb://localhost:27018",
+        "MongoDBDatabaseName": "OrderServiceDB",
+        "RabbitMQHostName": "localhost",
+        "RabbitMQUserName": "guest",
+        "RabbitMQPassword": "guest",
+        "RabbitMQQueueName": "OrderServiceQueue"
       },
       "publishAllPorts": true,
       "useSSL": true

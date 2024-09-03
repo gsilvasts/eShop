@@ -1,6 +1,7 @@
 ﻿using eShop.Order.Application.Interfaces;
 using eShop.Order.Domain.Entities;
 using eShop.Order.Domain.Enum;
+using eShop.Order.Domain.Interfaces.Messaging;
 using eShop.Order.Domain.Interfaces.Repositories;
 
 namespace eShop.Order.Application.Services
@@ -8,10 +9,12 @@ namespace eShop.Order.Application.Services
     public class OrderService : IOrderService
     {
         private readonly IOrderRepository _orderRepository;
+        private readonly IMessageProducer _messageProducer;
 
-        public OrderService(IOrderRepository orderRepository)
+        public OrderService(IOrderRepository orderRepository, IMessageProducer messageProducer)
         {
             _orderRepository = orderRepository;
+            _messageProducer = messageProducer;
         }
 
         public async Task<OrderViewModel> GetOrderAsync(string orderId,  CancellationToken cancellationToken)
@@ -34,6 +37,10 @@ namespace eShop.Order.Application.Services
             Orders order = InputToOrder(inputModel);
 
             await _orderRepository.CreateAsync(order, cancellationToken);
+
+            var guid = Guid.NewGuid().ToString();
+
+            await _messageProducer.PublishAsync(order, guid,  cancellationToken);
 
             return OrderToViewModel(order);
         }

@@ -19,16 +19,16 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddSingleton<IOrderRepository, OrderRepository>();
 
-var OrdersCollectionName = builder.Configuration["MongoDB_OrdersCollectionName"];
-var ConnectionString = builder.Configuration["MongoDB_ConnectionString"];
-var DatabaseName = builder.Configuration["MongoDB_DatabaseName"];
+var OrdersCollectionName = builder.Configuration["MongoDBOrdersCollectionName"];
+var ConnectionString = builder.Configuration["MongoDBConnectionString"];
+var DatabaseName = builder.Configuration["MongoDBDatabaseName"];
 
 builder.Services.AddSingleton<IOrderDatabaseSettings>(sp =>
 {
     List<string> missingVariables = new List<string>();
-    if (string.IsNullOrEmpty(OrdersCollectionName)) missingVariables.Add("MongoDB_OrdersCollectionName");
-    if (string.IsNullOrEmpty(ConnectionString)) missingVariables.Add("MongoDB_ConnectionString");
-    if (string.IsNullOrEmpty(DatabaseName)) missingVariables.Add("MongoDB_DatabaseName");
+    if (string.IsNullOrEmpty(OrdersCollectionName)) missingVariables.Add("MongoDBOrdersCollectionName");
+    if (string.IsNullOrEmpty(ConnectionString)) missingVariables.Add("MongoDBConnectionString");
+    if (string.IsNullOrEmpty(DatabaseName)) missingVariables.Add("MongoDBDatabaseName");
 
     if (missingVariables.Count > 0)
     {
@@ -40,16 +40,16 @@ builder.Services.AddSingleton<IOrderDatabaseSettings>(sp =>
 
 builder.Services.AddSingleton<IMessageProducer, RabbitMQProducerService>(sp =>
 {
-    var hostName = builder.Configuration["RabbitMQ_HostName"];
-    var queueName = builder.Configuration[key: "RabbitMQ_QueueName"];
-    var userName = builder.Configuration["RabbitMQ_UserName"];
-    var password = builder.Configuration["RabbitMQ_Password"];
+    var hostName = builder.Configuration["RabbitMQHostName"];
+    var queueName = builder.Configuration[key: "RabbitMQQueueName"];
+    var userName = builder.Configuration["RabbitMQUserName"];
+    var password = builder.Configuration["RabbitMQPassword"];
 
     List<string> missingVariables = new List<string>();
-    if (string.IsNullOrEmpty(hostName)) missingVariables.Add("RabbitMQ_HostName");
-    if (string.IsNullOrEmpty(queueName)) missingVariables.Add("RabbitMQ_QueueName");
-    if (string.IsNullOrEmpty(userName)) missingVariables.Add("RabbitMQ_UserName");
-    if (string.IsNullOrEmpty(password)) missingVariables.Add("RabbitMQ_Password");
+    if (string.IsNullOrEmpty(hostName)) missingVariables.Add("RabbitMQHostName");
+    if (string.IsNullOrEmpty(queueName)) missingVariables.Add("RabbitMQQueueName");
+    if (string.IsNullOrEmpty(userName)) missingVariables.Add("RabbitMQUserName");
+    if (string.IsNullOrEmpty(password)) missingVariables.Add("RabbitMQPassword");
 
     if (missingVariables.Count > 0)
     {

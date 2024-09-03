@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6.0
+    restart: always
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  eshop.order.api:
+    build:
+       context: .
+       dockerfile: src/eShopOrder/eShop.Order.API/Dockerfile
+    container_name: eshoporderapi
+
+    depends_on:
+      - mongodb
+      - rabbitmq
+
+volumes:
+  mongo-data:
