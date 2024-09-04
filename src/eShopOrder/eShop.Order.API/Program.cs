@@ -1,5 +1,6 @@
 using eShop.Order.Application.Interfaces;
 using eShop.Order.Application.Services;
+using eShop.Order.Domain.Interfaces;
 using eShop.Order.Domain.Interfaces.Messaging;
 using eShop.Order.Domain.Interfaces.Repositories;
 using eShop.Order.Infrastructure.Data;
@@ -59,7 +60,20 @@ builder.Services.AddSingleton<IMessageProducer, RabbitMQProducerService>(sp =>
     return new RabbitMQProducerService(new RabbitMQSettings(hostName, queueName, userName, password));
 });
 
+builder.Services.AddSingleton<IMessageConsumer, RabbitMQConsumerService>(sp =>
+{
+    var hostname = builder.Configuration["RabbitMQHostName"];
+    var username = builder.Configuration["RabbitMQUserName"];
+    var password = builder.Configuration["RabbitMQPassword"];
+    var queueName = builder.Configuration["RabbitMQPaymentStatusQueueName"];
+
+    return new RabbitMQConsumerService( new RabbitMQSettings(hostname, username, password, queueName));
+});
+
+builder.Services.AddHostedService<PaymentStatusProcessingService>();
+
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

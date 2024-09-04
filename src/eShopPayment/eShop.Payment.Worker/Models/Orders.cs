@@ -1,4 +1,6 @@
-﻿namespace eShop.Payment.Worker.Models
+﻿using eShop.Payment.Worker.Enum;
+
+namespace eShop.Payment.Worker.Models
 {
     public class Orders
     {

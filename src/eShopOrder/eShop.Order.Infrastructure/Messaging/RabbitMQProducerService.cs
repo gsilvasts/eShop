@@ -1,49 +1,57 @@
 ﻿using eShop.Order.Domain.Interfaces.Messaging;
 using RabbitMQ.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace eShop.Order.Infrastructure.Messaging
 {
-    public class RabbitMQProducerService : IMessageProducer
+    public class RabbitMQProducerService : IMessageProducer, IDisposable
     {
         private readonly RabbitMQSettings _settings;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
 
         public RabbitMQProducerService(RabbitMQSettings settings)
         {
             _settings = settings;
+            var factory = new ConnectionFactory()
+            {
+                HostName = _settings.HostName,
+                UserName = _settings.UserName,
+                Password = _settings.Password
+            };
+
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+
+            _channel.QueueDeclare(queue: _settings.QueueName,
+                                durable: true,
+                                exclusive: false,
+                                autoDelete: false,
+                                arguments: null);
         }
 
-        public async Task PublishAsync<T>(T message, string correlationId, CancellationToken cancellationToken)
+        public Task PublishAsync<T>(T message, string correlationId, CancellationToken cancellationToken)
         {
-            var factory = new ConnectionFactory() { HostName = _settings.HostName, UserName = _settings.UserName, Password = _settings.Password };
+            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
-            await Task.Run(() =>
-            {
-                using (var connection = factory.CreateConnection())
-                using (var channel = connection.CreateModel())
-                {
-                    channel.QueueDeclare(queue: _settings.QueueName,
-                                         durable: true,
-                                         exclusive: false,
-                                         autoDelete: false,
-                                         arguments: null);
+            var properties = _channel.CreateBasicProperties();
+            properties.CorrelationId = correlationId;
 
-                    var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+            _channel.BasicPublish(exchange: "",
+                                 routingKey: _settings.QueueName,
+                                 basicProperties: properties,
+                                 body: body);
 
-                    var properties = channel.CreateBasicProperties();
-                    properties.CorrelationId = correlationId;
+            return Task.CompletedTask;
+        }
 
-                    channel.BasicPublish(exchange: "",
-                                         routingKey: _settings.QueueName,
-                                         basicProperties: properties,
-                                         body: body);
-                }
-            }, cancellationToken);
+        public void Dispose()
+        {
+            _channel?.Close();
+            _channel?.Dispose();
+            _connection?.Close();
+            _connection?.Dispose();
         }
     }
 }

@@ -17,7 +17,7 @@ namespace eShop.Order.Application.Services
             _messageProducer = messageProducer;
         }
 
-        public async Task<OrderViewModel> GetOrderAsync(string orderId,  CancellationToken cancellationToken)
+        public async Task<OrderViewModel> GetOrderAsync(string orderId, CancellationToken cancellationToken)
         {
             Orders order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
 
@@ -40,7 +40,7 @@ namespace eShop.Order.Application.Services
 
             var guid = Guid.NewGuid().ToString();
 
-            await _messageProducer.PublishAsync(order, guid,  cancellationToken);
+            await _messageProducer.PublishAsync(order, guid, cancellationToken);
 
             return OrderToViewModel(order);
         }
@@ -131,6 +131,17 @@ namespace eShop.Order.Application.Services
                     TransactionId = Guid.NewGuid().ToString()
                 }
             };
+        }
+
+        public async Task UpdateOrderPaymentStatusAsync(string orderId, PaymentStatus status, CancellationToken cancellationToken)
+        {
+            var order = await _orderRepository.GetByIdAsync(orderId, cancellationToken);
+            
+            if (order != null)
+            {
+                order.Payment.Status = status;
+                await _orderRepository.UpdateAsync(orderId, order, cancellationToken);
+            }
         }
     }
 }

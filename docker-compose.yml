@@ -29,6 +29,21 @@ services:
     depends_on:
       - mongodb
       - rabbitmq
+  eshop.payment.worker:
+    build:
+       context: .
+       dockerfile: src/eShopPayment/eShop.Payment.Worker/Dockerfile
+    container_name: eshoppaymentworker
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - RabbitMQHostName=rabbitmq
+      - RabbitMQUserName=guest
+      - RabbitMQPassword=guest
+      - RabbitMQQueueName=OrderServiceQueue
+      - RabbitMQPaymentStatusQueueName=payment-status-queue
+
+    depends_on:
+      - rabbitmq
 
 volumes:
   mongo-data:

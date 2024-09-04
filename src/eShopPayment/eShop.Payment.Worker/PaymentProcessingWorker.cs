@@ -1,99 +1,115 @@
 using eShop.Payment.Worker.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Serilog;
+using System.Data.Common;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Channels;
 
 namespace eShop.Payment.Worker
 {
     public class PaymentProcessingWorker : BackgroundService
     {
-        private readonly ILogger<PaymentProcessingWorker> _logger;
-        private readonly IConnection _connection;
-        private readonly IModel _channel;
-        private readonly string _orderQueueName = "order-service-queue";
-        private readonly string _paymentStatusQueueName = "payment-status-queue";
-
-        public PaymentProcessingWorker(ILogger<PaymentProcessingWorker> logger)
+        private readonly RabbitMQSettings _settings;
+        private IConnection? _connection;
+        private IModel? _channel;
+        public PaymentProcessingWorker(RabbitMQSettings settings)
         {
-            _logger = logger;
-            var factory = new ConnectionFactory() { Uri = new Uri("amqp://guest:guest@rabbitmq:5672/") };
+            _settings = settings;
+        }
+
+        public override Task StartAsync(CancellationToken cancellationToken)
+        {
+            var factory = new ConnectionFactory()
+            {
+                HostName = _settings.HostName,
+                UserName = _settings.UserName,
+                Password = _settings.Password
+            };
+
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            _channel.QueueDeclare(queue: _orderQueueName,
-                                 durable: true,
-                                 exclusive: false,
-                                 autoDelete: false,
-                                 arguments: null);
+            _channel.QueueDeclare(queue: _settings.QueueName,
+                                  durable: true,
+                                  exclusive: false,
+                                  autoDelete: false,
+                                  arguments: null);
 
-            _channel.QueueDeclare(queue: _paymentStatusQueueName,
-                                 durable: true, 
-                                 exclusive: false, 
-                                 autoDelete: false, 
-                                 arguments: null);
+            Log.Information("Payment processing worker started");
+
+            return base.StartAsync(cancellationToken);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Payment processing worker started");
-
             var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += async (model, ea) =>
+
+            consumer.Received += async (sender, args) =>
             {
-                var body = ea.Body.ToArray();
+                var body = args.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
                 var order = JsonSerializer.Deserialize<Orders>(message);
 
-                _logger.LogInformation($"Order received: {message}");
+                if (order != null)
+                {
+                    Log.Information($"Order received: {message}");
+                    Log.Information($"Processing payment: {order.OrderId}");
 
-                await ProcessPayment(order.OrderId, stoppingToken);
+                    // Simulate payment processing
+                    await Task.Delay(5000, stoppingToken);
 
-                _channel.BasicAck(ea.DeliveryTag, false);
+                    var random = new Random();
+                    var paymentSucceeded = random.Next(0, 2) == 1;
+                    var status = paymentSucceeded ? "succeeded" : "failed";
+
+                    Log.Information($"Payment {status}: {order.OrderId}");
+
+                    // Publish payment status
+                    var paymentStatus = new PaymentStatus
+                    {
+                        OrderId = order.OrderId,
+                        Status = status
+                    };
+
+                    var bodyP = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(paymentStatus));
+
+                    _channel.BasicPublish(exchange: "",
+                                          routingKey: _settings.PaymentStatusQueueName,
+                                          basicProperties: null,
+                                          body: bodyP);
+
+                    Log.Information($"Payment status published: {order.OrderId}");
+
+                    _channel.BasicAck(args.DeliveryTag, false);
+                }
+                else
+                {
+                    Log.Warning("Received a null or invalid payment order.");
+                    _channel.BasicNack(args.DeliveryTag, false, true);
+                }
             };
 
-            _channel.BasicConsume(queue: _orderQueueName,
-                                 autoAck: false,
-                                 consumer: consumer);
+            _channel.BasicConsume(queue: _settings.QueueName, autoAck: false, consumer: consumer);
 
-            await Task.CompletedTask;
+            // Mantém o método em execução enquanto o serviço estiver ativo
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
-        private async Task ProcessPayment(string orderId, CancellationToken cancellationToken)
+        public override Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Processing payment: {orderId}");
-
-            // Simulate payment processing
-            await Task.Delay(5000, cancellationToken);
-
-            var random = new Random();
-            var paymentSucceeded = random.Next(0, 2) == 1;
-            var status = paymentSucceeded ? "succeeded" : "failed";
-
-            _logger.LogInformation($"Payment {status}: {orderId}");
-
-            //Publish payment status
-            var paymentStatus = new PaymentStatus
-            {
-                OrderId = orderId,
-                Status = status
-            };
-
-            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(paymentStatus));
-
-            _channel.BasicPublish(exchange: "",
-                                 routingKey: _paymentStatusQueueName,
-                                 basicProperties: null,
-                                 body: body);
-
-            _logger.LogInformation($"Payment status published: {orderId}");
+            _channel?.Close();
+            _connection?.Close();
+            Log.Information("Payment processing worker stopped");
+            return base.StopAsync(cancellationToken);
         }
 
-        public override async Task StopAsync(CancellationToken cancellationToken)
+        public override void Dispose()
         {
-            _channel.Close();
-            _connection.Close();
-            await base.StopAsync(cancellationToken);
+            _channel?.Dispose();
+            _connection?.Dispose();
+            base.Dispose();
         }
     }
 }

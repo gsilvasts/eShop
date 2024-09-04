@@ -1,4 +1,5 @@
 ﻿using eShop.Order.Application.Services;
+using eShop.Order.Domain.Enum;
 
 namespace eShop.Order.Application.Interfaces
 {
@@ -9,6 +10,6 @@ namespace eShop.Order.Application.Interfaces
         Task<OrderViewModel> GetOrderAsync(string orderId, CancellationToken cancellationToken);
         Task<IEnumerable<OrderViewModel>> GetOrdersAsync(CancellationToken cancellationToken);
         Task UpdateOrderAsync(string orderId, OrderInputModel order, CancellationToken cancellationToken);
-        void UpdateOrderPaymentStatus(string orderId, string status);
+        Task UpdateOrderPaymentStatusAsync(string orderId, PaymentStatus status, CancellationToken cancellationToken);
     }
 }
