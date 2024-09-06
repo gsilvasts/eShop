@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace eShop.Order.Infrastructure.Messaging
 {
-    public class RabbitMQProducerService : IMessageProducer, IDisposable
+    public class RabbitMQProducerService : IMessageProducer
     {
         private readonly RabbitMQSettings _settings;
         private readonly IConnection _connection;

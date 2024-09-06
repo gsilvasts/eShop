@@ -29,6 +29,7 @@ services:
     depends_on:
       - mongodb
       - rabbitmq
+
   eshop.payment.worker:
     build:
        context: .

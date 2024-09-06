@@ -3,12 +3,23 @@
     "eShop.Payment.Worker": {
       "commandName": "Project",
       "environmentVariables": {
-        "DOTNET_ENVIRONMENT": "Development"
+        "DOTNET_ENVIRONMENT": "Development",
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "RabbitMQHostName": "localhost",
+        "RabbitMQUserName": "guest",
+        "RabbitMQPassword": "guest",
+        "RabbitMQQueueName": "OrderServiceQueue",
+        "RabbitMQPaymentStatusQueueName": "payment-status-queue"
       },
       "dotnetRunMessages": true
     },
     "Container (Dockerfile)": {
-      "commandName": "Docker"
+      "commandName": "Docker",
+      "RabbitMQHostName": "localhost",
+      "RabbitMQUserName": "guest",
+      "RabbitMQPassword": "guest",
+      "RabbitMQQueueName": "OrderServiceQueue",
+      "RabbitMQPaymentStatusQueueName": "payment-status-queue"
     }
   },
   "$schema": "http://json.schemastore.org/launchsettings.json"

@@ -13,6 +13,7 @@ services:
       - RabbitMQUserName=guest
       - RabbitMQPassword=guest
       - RabbitMQQueueName=OrderServiceQueue
+      - RabbitMQPaymentStatusQueueName=payment-status-queue
     ports:
       - "8080:80"
     volumes:

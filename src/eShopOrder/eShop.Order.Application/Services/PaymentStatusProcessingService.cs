@@ -1,30 +1,38 @@
 ﻿using eShop.Order.Application.Interfaces;
 using eShop.Order.Domain.Entities;
 using eShop.Order.Domain.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 
 namespace eShop.Order.Application.Services
 {
     public class PaymentStatusProcessingService : BackgroundService
     {
         private readonly IMessageConsumer _messageConsumer;
-        private readonly IOrderService _orderService;
+        private readonly IServiceProvider _serviceProvider;
 
-        public PaymentStatusProcessingService(IMessageConsumer messageConsumer, IOrderService orderService)
+        public PaymentStatusProcessingService(IMessageConsumer messageConsumer, IServiceProvider serviceProvider)
         {
             _messageConsumer = messageConsumer;
-            _orderService = orderService;
+            _serviceProvider = serviceProvider;
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _messageConsumer.ConsumeAsync<PaymentStatusMessage>(async message =>
+            Log.Information("PaymentStatusProcessingService is starting.");
+
+            await _messageConsumer.ConsumeAsync<PaymentStatusMessage>(async message =>
             {
-                await _orderService.UpdateOrderPaymentStatusAsync(message.OrderId, message.Status, stoppingToken);
+                using (var scope = _serviceProvider.CreateScope())
+                {
+                    var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
+                    await orderService.UpdateOrderPaymentStatusAsync(message.OrderId, message.Status, stoppingToken);
+                }
 
             }, stoppingToken);
 
-            return Task.CompletedTask;
+            Log.Information("PaymentStatusProcessingService is stopping.");
         }
     }
 }

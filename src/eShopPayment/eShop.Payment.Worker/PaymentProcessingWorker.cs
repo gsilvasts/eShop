@@ -1,26 +1,21 @@
+using eShop.Payment.Worker.Enum;
 using eShop.Payment.Worker.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using Serilog;
-using System.Data.Common;
 using System.Text;
 using System.Text.Json;
-using System.Threading.Channels;
 
 namespace eShop.Payment.Worker
 {
     public class PaymentProcessingWorker : BackgroundService
     {
         private readonly RabbitMQSettings _settings;
-        private IConnection? _connection;
-        private IModel? _channel;
+        private readonly IConnection _connection;
+        private readonly IModel _channel;
         public PaymentProcessingWorker(RabbitMQSettings settings)
         {
             _settings = settings;
-        }
-
-        public override Task StartAsync(CancellationToken cancellationToken)
-        {
             var factory = new ConnectionFactory()
             {
                 HostName = _settings.HostName,
@@ -36,14 +31,11 @@ namespace eShop.Payment.Worker
                                   exclusive: false,
                                   autoDelete: false,
                                   arguments: null);
-
-            Log.Information("Payment processing worker started");
-
-            return base.StartAsync(cancellationToken);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            Log.Information("Payment processing worker is running");
             var consumer = new EventingBasicConsumer(_channel);
 
             consumer.Received += async (sender, args) =>
@@ -67,10 +59,10 @@ namespace eShop.Payment.Worker
                     Log.Information($"Payment {status}: {order.OrderId}");
 
                     // Publish payment status
-                    var paymentStatus = new PaymentStatus
+                    var paymentStatus = new PaymentStatusMessage
                     {
                         OrderId = order.OrderId,
-                        Status = status
+                        Status = PaymentStatus.Authorized
                     };
 
                     var bodyP = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(paymentStatus));
@@ -95,14 +87,6 @@ namespace eShop.Payment.Worker
 
             // Mantém o método em execução enquanto o serviço estiver ativo
             await Task.Delay(Timeout.Infinite, stoppingToken);
-        }
-
-        public override Task StopAsync(CancellationToken cancellationToken)
-        {
-            _channel?.Close();
-            _connection?.Close();
-            Log.Information("Payment processing worker stopped");
-            return base.StopAsync(cancellationToken);
         }
 
         public override void Dispose()

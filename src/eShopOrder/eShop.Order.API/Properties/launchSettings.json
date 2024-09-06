@@ -5,7 +5,12 @@
       "launchBrowser": true,
       "launchUrl": "swagger",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "RabbitMQHostName": "localhost",
+        "RabbitMQUserName": "guest",
+        "RabbitMQPassword": "guest",
+        "RabbitMQQueueName": "OrderServiceQueue",
+        "RabbitMQPaymentStatusQueueName": "payment-status-queue"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "http://localhost:8080"
@@ -17,12 +22,13 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "MongoDBOrdersCollectionName": "Orders",
-        "MongoDBConnectionString": "mongodb://localhost:27018",
+        "MongoDBConnectionString": "mongodb://localhost:27017",
         "MongoDBDatabaseName": "OrderServiceDB",
         "RabbitMQHostName": "localhost",
         "RabbitMQUserName": "guest",
         "RabbitMQPassword": "guest",
-        "RabbitMQQueueName": "OrderServiceQueue"
+        "RabbitMQQueueName": "OrderServiceQueue",
+        "RabbitMQPaymentStatusQueueName": "payment-status-queue"
       },
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7035;http://localhost:5175"
@@ -43,12 +49,13 @@
         "ASPNETCORE_HTTPS_PORTS": "8081",
         "ASPNETCORE_HTTP_PORTS": "8080",
         "MongoDBOrdersCollectionName": "Orders",
-        "MongoDBConnectionString": "mongodb://localhost:27018",
+        "MongoDBConnectionString": "mongodb://localhost:27017",
         "MongoDBDatabaseName": "OrderServiceDB",
         "RabbitMQHostName": "localhost",
         "RabbitMQUserName": "guest",
         "RabbitMQPassword": "guest",
-        "RabbitMQQueueName": "OrderServiceQueue"
+        "RabbitMQQueueName": "OrderServiceQueue",
+        "RabbitMQPaymentStatusQueueName": "payment-status-queue"
       },
       "publishAllPorts": true,
       "useSSL": true
