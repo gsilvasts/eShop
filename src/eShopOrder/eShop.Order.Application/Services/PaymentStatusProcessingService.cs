@@ -10,27 +10,30 @@ namespace eShop.Order.Application.Services
     public class PaymentStatusProcessingService : BackgroundService
     {
         private readonly IMessageConsumer _messageConsumer;
-        private readonly IServiceProvider _serviceProvider;
-
-        public PaymentStatusProcessingService(IMessageConsumer messageConsumer, IServiceProvider serviceProvider)
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        public PaymentStatusProcessingService(IMessageConsumer messageConsumer, IServiceScopeFactory serviceScopeFactory)
         {
             _messageConsumer = messageConsumer;
-            _serviceProvider = serviceProvider;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Log.Information("PaymentStatusProcessingService is starting.");
 
+
             await _messageConsumer.ConsumeAsync<PaymentStatusMessage>(async message =>
             {
-                using (var scope = _serviceProvider.CreateScope())
+                Log.Information("Processing payment status message for order {OrderId}", message.OrderId);
+                using (var scope = _serviceScopeFactory.CreateScope()) // Crie um escopo para serviços scoped
                 {
                     var orderService = scope.ServiceProvider.GetRequiredService<IOrderService>();
                     await orderService.UpdateOrderPaymentStatusAsync(message.OrderId, message.Status, stoppingToken);
                 }
 
             }, stoppingToken);
+
+            await Task.Delay(1000, stoppingToken);
 
             Log.Information("PaymentStatusProcessingService is stopping.");
         }

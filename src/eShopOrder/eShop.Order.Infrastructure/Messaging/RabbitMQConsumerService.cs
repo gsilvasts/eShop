@@ -49,6 +49,7 @@ namespace eShop.Order.Infrastructure.Messaging
 
         public async Task ConsumeAsync<T>(Func<T, Task> onMessageReceived, CancellationToken cancellationToken)
         {
+            Log.Information("Consumer started.");
             // Validar se o canal e a conexão estão abertas
             if (_channel == null || _connection == null || !_connection.IsOpen || !_channel.IsOpen)
             {
@@ -60,6 +61,8 @@ namespace eShop.Order.Infrastructure.Messaging
             {
                 var body = eventArgs.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
+
+                Log.Information("Received message: {Message}", message);
 
                 try
                 {
@@ -82,9 +85,9 @@ namespace eShop.Order.Infrastructure.Messaging
                 }
             };
 
-            _channel.BasicConsume(queue: _settings.QueueName, autoAck: false, consumer: consumer);
-
-            await Task.Delay(Timeout.Infinite, cancellationToken);
+            _channel.BasicConsume(queue: _settings.QueueName, autoAck: false, consumer: consumer);  
+            
+            Log.Information("Consumer is consuming messages.");
         }
 
         public void Dispose()

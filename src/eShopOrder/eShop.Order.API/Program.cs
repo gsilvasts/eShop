@@ -6,9 +6,15 @@ using eShop.Order.Domain.Interfaces.Repositories;
 using eShop.Order.Infrastructure.Data;
 using eShop.Order.Infrastructure.Data.Repositories;
 using eShop.Order.Infrastructure.Messaging;
-using Microsoft.Extensions.Options;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddHostedService<PaymentStatusProcessingService>();
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .CreateLogger();
 
 // Add services to the container.
 
@@ -81,7 +87,35 @@ builder.Services.AddSingleton<IMessageConsumer, RabbitMQConsumerService>(sp =>
     return new RabbitMQConsumerService(new RabbitMQSettings(hostName, queueName, userName, password));
 });
 
-builder.Services.AddHostedService<PaymentStatusProcessingService>();
+//var host = Host.CreateDefaultBuilder(args)
+//    .ConfigureServices((context, services) =>
+//    {
+//        var hostName = context.Configuration["RabbitMQHostName"];
+//        var userName = context.Configuration["RabbitMQUserName"];
+//        var password = context.Configuration["RabbitMQPassword"];
+//        var queueName = context.Configuration["RabbitMQPaymentStatusQueueName"];
+
+//        List<string> missingVariables = new List<string>();
+//        if (string.IsNullOrEmpty(hostName)) missingVariables.Add("RabbitMQHostName");
+//        if (string.IsNullOrEmpty(queueName)) missingVariables.Add("RabbitMQPaymentStatusQueueName");
+//        if (string.IsNullOrEmpty(userName)) missingVariables.Add("RabbitMQUserName");
+//        if (string.IsNullOrEmpty(password)) missingVariables.Add("RabbitMQPassword");
+
+//        if (missingVariables.Count > 0)
+//        {
+//            throw new Exception($"Missing environment variables: {string.Join(", ", missingVariables)}");
+//        }
+
+//        var rabbitMQSettings = new RabbitMQSettings(hostName, queueName, userName, password);
+
+//        services.AddSingleton(rabbitMQSettings); // RabbitMQSettings como Singleton
+//        services.AddSingleton<IMessageConsumer, RabbitMQConsumerService>(); // Consumidor como Singleton
+//        services.AddScoped<IOrderService, OrderService>(); // IOrderService como Scoped
+//        services.AddHostedService<PaymentStatusProcessingService>();
+
+//    })
+//    .UseSerilog()
+//    .Build();
 
 var app = builder.Build();
 

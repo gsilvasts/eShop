@@ -1,15 +1,19 @@
 using eShop.Payment.Worker;
 using eShop.Payment.Worker.Models;
+using Serilog;
 
-var builder = Host.CreateApplicationBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .CreateLogger();
 
-builder.Services.AddHostedService<PaymentProcessingWorker>(sp =>
+var host = Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, services) =>
 {
-    var hostName = builder.Configuration["RabbitMQHostName"];
-    var queueName = builder.Configuration[key: "RabbitMQQueueName"];
-    var paymentQueueName = builder.Configuration["RabbitMQPaymentStatusQueueName"];
-    var userName = builder.Configuration["RabbitMQUserName"];
-    var password = builder.Configuration["RabbitMQPassword"];
+    var hostName = hostContext.Configuration["RabbitMQHostName"];
+    var queueName = hostContext.Configuration[key: "RabbitMQQueueName"];
+    var paymentQueueName = hostContext.Configuration["RabbitMQPaymentStatusQueueName"];
+    var userName = hostContext.Configuration["RabbitMQUserName"];
+    var password = hostContext.Configuration["RabbitMQPassword"];
 
     List<string> missingVariables = new List<string>();
     if (string.IsNullOrEmpty(hostName)) missingVariables.Add("RabbitMQHostName");
@@ -23,8 +27,12 @@ builder.Services.AddHostedService<PaymentProcessingWorker>(sp =>
         throw new Exception($"Missing environment variables: {string.Join(", ", missingVariables)}");
     }
 
-    return new PaymentProcessingWorker(new RabbitMQSettings(hostName, queueName, userName, password, paymentQueueName));
-});
+    var rabbitMQSettins = new RabbitMQSettings(hostName, queueName, userName, password, paymentQueueName);
 
-var host = builder.Build();
+    services.AddSingleton<RabbitMQSettings>(rabbitMQSettins);
+    services.AddHostedService<PaymentProcessingWorker>();
+
+}).Build();
+
+
 host.Run();
