@@ -9,7 +9,6 @@ using eShop.Order.Infrastructure.Messaging;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddHostedService<PaymentStatusProcessingService>();
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -65,57 +64,6 @@ builder.Services.AddScoped<IMessageProducer, RabbitMQProducerService>(sp =>
 
     return new RabbitMQProducerService(new RabbitMQSettings(hostName, queueName, userName, password));
 });
-
-builder.Services.AddSingleton<IMessageConsumer, RabbitMQConsumerService>(sp =>
-{
-    var hostName = builder.Configuration["RabbitMQHostName"];
-    var userName = builder.Configuration["RabbitMQUserName"];
-    var password = builder.Configuration["RabbitMQPassword"];
-    var queueName = builder.Configuration["RabbitMQPaymentStatusQueueName"];
-
-    List<string> missingVariables = new List<string>();
-    if (string.IsNullOrEmpty(hostName)) missingVariables.Add("RabbitMQHostName");
-    if (string.IsNullOrEmpty(queueName)) missingVariables.Add("RabbitMQPaymentStatusQueueName");
-    if (string.IsNullOrEmpty(userName)) missingVariables.Add("RabbitMQUserName");
-    if (string.IsNullOrEmpty(password)) missingVariables.Add("RabbitMQPassword");
-
-    if (missingVariables.Count > 0)
-    {
-        throw new Exception($"Missing environment variables: {string.Join(", ", missingVariables)}");
-    }
-
-    return new RabbitMQConsumerService(new RabbitMQSettings(hostName, queueName, userName, password));
-});
-
-//var host = Host.CreateDefaultBuilder(args)
-//    .ConfigureServices((context, services) =>
-//    {
-//        var hostName = context.Configuration["RabbitMQHostName"];
-//        var userName = context.Configuration["RabbitMQUserName"];
-//        var password = context.Configuration["RabbitMQPassword"];
-//        var queueName = context.Configuration["RabbitMQPaymentStatusQueueName"];
-
-//        List<string> missingVariables = new List<string>();
-//        if (string.IsNullOrEmpty(hostName)) missingVariables.Add("RabbitMQHostName");
-//        if (string.IsNullOrEmpty(queueName)) missingVariables.Add("RabbitMQPaymentStatusQueueName");
-//        if (string.IsNullOrEmpty(userName)) missingVariables.Add("RabbitMQUserName");
-//        if (string.IsNullOrEmpty(password)) missingVariables.Add("RabbitMQPassword");
-
-//        if (missingVariables.Count > 0)
-//        {
-//            throw new Exception($"Missing environment variables: {string.Join(", ", missingVariables)}");
-//        }
-
-//        var rabbitMQSettings = new RabbitMQSettings(hostName, queueName, userName, password);
-
-//        services.AddSingleton(rabbitMQSettings); // RabbitMQSettings como Singleton
-//        services.AddSingleton<IMessageConsumer, RabbitMQConsumerService>(); // Consumidor como Singleton
-//        services.AddScoped<IOrderService, OrderService>(); // IOrderService como Scoped
-//        services.AddHostedService<PaymentStatusProcessingService>();
-
-//    })
-//    .UseSerilog()
-//    .Build();
 
 var app = builder.Build();
 

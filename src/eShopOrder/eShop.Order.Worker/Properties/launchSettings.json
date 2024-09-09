@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "eShop.Order.Worker": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development",
+        "OrderApiBaseUrl": "https://localhost:8080",
+        "RabbitMQHostName": "localhost",
+        "RabbitMQUserName": "guest",
+        "RabbitMQPassword": "guest",
+        "RabbitMQQueueName": "payment-status-queue"
+      },
+      "dotnetRunMessages": true
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  },
+  "$schema": "http://json.schemastore.org/launchsettings.json"
+}

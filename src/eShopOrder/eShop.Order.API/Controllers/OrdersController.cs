@@ -1,5 +1,7 @@
 ﻿using eShop.Order.Application.Interfaces;
 using eShop.Order.Application.Services;
+using eShop.Order.Domain.Entities;
+using eShop.Order.Domain.Enum;
 using Microsoft.AspNetCore.Mvc;
 
 namespace eShop.Order.API.Controllers
@@ -43,6 +45,14 @@ namespace eShop.Order.API.Controllers
         public async Task DeleteOrderAsync(string orderId, CancellationToken cancellationToken)
         {
             await _orderService.DeleteOrderAsync(orderId, cancellationToken);
+        }
+
+        [HttpPost("{id}/payments")]
+        public async Task<IActionResult> UpdateOrderPaymentStatusAsync(string id, [FromBody] PaymentStatus paymentStatus, CancellationToken cancellationToken)
+        {
+            await _orderService.UpdateOrderPaymentStatusAsync(id, paymentStatus, cancellationToken);
+
+            return Ok();
         }
     }
 }

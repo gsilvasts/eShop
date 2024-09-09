@@ -2,20 +2,6 @@ version: '3.8'
 
 services:
   eshop.order.api:
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80
-      - ASPNETCORE_HTTP_PORTS=8080
-      - MongoDBOrdersCollectionName=Orders
-      - MongoDBConnectionString=mongodb://mongodb:27017/eShopOrderDB
-      - MongoDBDatabaseName=OrderServiceDB
-      - RabbitMQHostName=rabbitmq
-      - RabbitMQUserName=guest
-      - RabbitMQPassword=guest
-      - RabbitMQQueueName=OrderServiceQueue
-      - RabbitMQPaymentStatusQueueName=payment-status-queue
-    ports:
-      - "8080:80"
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro

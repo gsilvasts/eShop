@@ -27,9 +27,7 @@ var host = Host.CreateDefaultBuilder(args).ConfigureServices((hostContext, servi
         throw new Exception($"Missing environment variables: {string.Join(", ", missingVariables)}");
     }
 
-    var rabbitMQSettins = new RabbitMQSettings(hostName, queueName, userName, password, paymentQueueName);
-
-    services.AddSingleton<RabbitMQSettings>(rabbitMQSettins);
+    services.AddSingleton(new RabbitMQSettings(hostName, queueName, userName, password, paymentQueueName));
     services.AddHostedService<PaymentProcessingWorker>();
 
 }).Build();

@@ -1,21 +1,21 @@
-﻿using eShop.Order.Domain.Interfaces;
+using eShop.Order.Worker.Models;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using RabbitMQ.Client.Exceptions;
 using Serilog;
 using System.Text;
 using System.Text.Json;
 
-namespace eShop.Order.Infrastructure.Messaging
+namespace eShop.Order.Worker
 {
-    public class RabbitMQConsumerService : IMessageConsumer
+    public class OrderStatusWorker : BackgroundService
     {
         private readonly RabbitMQSettings _settings;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IConnection _connection;
         private readonly IModel _channel;
-
-        public RabbitMQConsumerService(RabbitMQSettings settings)
+        public OrderStatusWorker(RabbitMQSettings settings, IHttpClientFactory httpClientFactory)
         {
+            Console.WriteLine(JsonSerializer.Serialize(settings));
             _settings = settings;
             var factory = new ConnectionFactory()
             {
@@ -34,63 +34,66 @@ namespace eShop.Order.Infrastructure.Messaging
                                       exclusive: false,
                                       autoDelete: false,
                                       arguments: null);
-            }
-            catch (BrokerUnreachableException ex)
-            {
-                Log.Error(ex, "Cannot connect to RabbitMQ: {Message}", ex.Message);
-                throw; // Pode adicionar lógica de retry aqui
+                _httpClientFactory = httpClientFactory;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error during RabbitMQ setup: {Message}", ex.Message);
+                Log.Error(ex, "Failed to create RabbitMQ connection.");
                 throw;
             }
         }
 
-        public async Task ConsumeAsync<T>(Func<T, Task> onMessageReceived, CancellationToken cancellationToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Log.Information("Consumer started.");
-            // Validar se o canal e a conexão estão abertas
-            if (_channel == null || _connection == null || !_connection.IsOpen || !_channel.IsOpen)
-            {
-                throw new InvalidOperationException("Connection or channel is not open.");
-            }
 
-            var consumer = new AsyncEventingBasicConsumer(_channel); // Use Async para evitar bloqueios
+            var consumer = new EventingBasicConsumer(_channel);
+
             consumer.Received += async (sender, eventArgs) =>
             {
                 var body = eventArgs.Body.ToArray();
                 var message = Encoding.UTF8.GetString(body);
+                var deserializedMessage = JsonSerializer.Deserialize<PaymentStatusMessage>(message);
 
-                Log.Information("Received message: {Message}", message);
-
-                try
+                if (deserializedMessage != null)
                 {
-                    var deserializedMessage = JsonSerializer.Deserialize<T>(message);
-                    if (deserializedMessage != null)
+                    Log.Information("Received message: {Message}", message);
+
+                    var httpClient = _httpClientFactory.CreateClient("OrderAPI");
+
+                    var content = new StringContent(JsonSerializer.Serialize(deserializedMessage.Status), Encoding.UTF8, "application/json");
+
+
+                    var response = await httpClient.PostAsync($"api/orders/{deserializedMessage.OrderId}/payments", content, stoppingToken);
+
+                    if (response.IsSuccessStatusCode)
                     {
-                        await onMessageReceived(deserializedMessage);
+                        Log.Information("Payment status sent successfully for OrderId: {OrderId}", deserializedMessage.OrderId);
+
                         _channel.BasicAck(eventArgs.DeliveryTag, false);
                     }
                     else
                     {
+                        Log.Error("Failed to send payment status for OrderId: {OrderId}. StatusCode: {StatusCode}", deserializedMessage.OrderId, response.StatusCode);
+
                         _channel.BasicNack(eventArgs.DeliveryTag, false, true);
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Log the exception
-                    Log.Error(ex, "Error processing message: {Message}", message);
+                    Log.Warning("Received null or invalid message.");
                     _channel.BasicNack(eventArgs.DeliveryTag, false, true);
                 }
             };
 
-            _channel.BasicConsume(queue: _settings.QueueName, autoAck: false, consumer: consumer);  
-            
-            Log.Information("Consumer is consuming messages.");
+            _channel.BasicConsume(queue: _settings.QueueName, autoAck: false, consumer: consumer);
+
+            Log.Information("OrderStatusWorker is consuming messages.");
+
+            await Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_channel?.IsOpen == true)
             {
@@ -103,6 +106,8 @@ namespace eShop.Order.Infrastructure.Messaging
                 _connection.Close();
                 _connection.Dispose();
             }
+
+            base.Dispose();
         }
     }
 }

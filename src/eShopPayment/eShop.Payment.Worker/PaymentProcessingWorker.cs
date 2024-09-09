@@ -15,6 +15,7 @@ namespace eShop.Payment.Worker
         private readonly IModel _channel;
         public PaymentProcessingWorker(RabbitMQSettings settings)
         {
+            Console.WriteLine(JsonSerializer.Serialize(settings));
             _settings = settings;
             var factory = new ConnectionFactory()
             {
@@ -52,12 +53,6 @@ namespace eShop.Payment.Worker
                     // Simulate payment processing
                     await Task.Delay(5000, stoppingToken);
 
-                    var random = new Random();
-                    var paymentSucceeded = random.Next(0, 2) == 1;
-                    var status = paymentSucceeded ? "succeeded" : "failed";
-
-                    Log.Information($"Payment {status}: {order.OrderId}");
-
                     // Publish payment status
                     var paymentStatus = new PaymentStatusMessage
                     {
@@ -91,8 +86,18 @@ namespace eShop.Payment.Worker
 
         public override void Dispose()
         {
-            _channel?.Dispose();
-            _connection?.Dispose();
+            if (_channel?.IsOpen == true)
+            {
+                _channel.Close();
+                _channel.Dispose();
+            }
+
+            if (_connection?.IsOpen == true)
+            {
+                _connection.Close();
+                _connection.Dispose();
+            }
+
             base.Dispose();
         }
     }
