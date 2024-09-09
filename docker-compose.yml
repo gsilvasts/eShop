@@ -11,6 +11,11 @@ services:
       - mongo-data:/data/db
     networks:
       - eshop-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -99,6 +104,11 @@ services:
 
 volumes:
   mongo-data:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./data/mongo
   
 networks:
   eshop-network:
