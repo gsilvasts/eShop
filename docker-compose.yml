@@ -38,17 +38,17 @@ services:
     ports:
       - "8080:80"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:80
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
       - ASPNETCORE_HTTP_PORTS=8080
-      - MongoDBOrdersCollectionName=Orders
-      - MongoDBConnectionString=mongodb://mongodb:27017/eShopOrderDB
-      - MongoDBDatabaseName=OrderServiceDB
-      - RabbitMQHostName=rabbitmq
-      - RabbitMQUserName=guest
-      - RabbitMQPassword=guest
-      - RabbitMQQueueName=order-service-queue
-      - RabbitMQPaymentStatusQueueName=payment-status-queue
+      - MongoDBOrdersCollectionName=${MONGODB_COLLETION}
+      - MongoDBConnectionString=${MONGODB_URI}
+      - MongoDBDatabaseName=${MONGODB_DATABASE}
+      - RabbitMQHostName=${RABBITMQ_HOSTNAME}
+      - RabbitMQUserName=${RABBITMQ_USERNAME}
+      - RabbitMQPassword=${RABBITMQ_PASSWORD}
+      - RabbitMQQueueName=${RABBITMQ_ORDERQUEUENAME}
+      - RabbitMQPaymentStatusQueueName=${RABBITMQ_PAYMENTSTATUSQUEUENAME}
     networks:
       - eshop-network
 
@@ -59,12 +59,12 @@ services:
     container_name: eshoporderworker
     restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - OrderApiBaseUrl=http://eshop.order.api:80
-      - RabbitMQHostName=rabbitmq
-      - RabbitMQUserName=guest
-      - RabbitMQPassword=guest
-      - RabbitMQQueueName=payment-status-queue
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - OrderApiBaseUrl=${ORDER_API_BASE_URL}
+      - RabbitMQHostName=${RABBITMQ_HOSTNAME}
+      - RabbitMQUserName=${RABBITMQ_USERNAME}
+      - RabbitMQPassword=${RABBITMQ_PASSWORD}
+      - RabbitMQQueueName=${RABBITMQ_PAYMENTSTATUSQUEUENAME}
     depends_on:
       - rabbitmq
     networks:
@@ -77,12 +77,12 @@ services:
     container_name: eshoppaymentworker
     restart: always
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - RabbitMQHostName=rabbitmq
-      - RabbitMQUserName=guest
-      - RabbitMQPassword=guest
-      - RabbitMQQueueName=order-service-queue
-      - RabbitMQPaymentStatusQueueName=payment-status-queue
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - RabbitMQHostName=${RABBITMQ_HOSTNAME}
+      - RabbitMQUserName=${RABBITMQ_USERNAME}
+      - RabbitMQPassword=${RABBITMQ_PASSWORD}
+      - RabbitMQQueueName=${RABBITMQ_ORDERQUEUENAME}
+      - RabbitMQPaymentStatusQueueName=${RABBITMQ_PAYMENTSTATUSQUEUENAME}
     depends_on:
       - rabbitmq
     networks:
