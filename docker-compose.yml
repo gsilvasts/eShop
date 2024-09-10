@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   mongodb:
-    image: mongo:6.0
+    image: mongo:7.0.14
     restart: always
     container_name: mongodb
     ports:
@@ -11,14 +11,9 @@ services:
       - mongo-data:/data/db
     networks:
       - eshop-network
-    healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
 
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3.12.14-management
     restart: always
     container_name: rabbitmq
     ports:
@@ -29,12 +24,6 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     networks:
       - eshop-network
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
 
   eshop.order.api:
     build:
@@ -43,10 +32,9 @@ services:
     container_name: eshoporderapi
     restart: always
     depends_on:
-      mongodb:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+      - mongodb
+      - rabbitmq
+
     ports:
       - "8080:80"
     environment:
@@ -78,8 +66,7 @@ services:
       - RabbitMQPassword=guest
       - RabbitMQQueueName=payment-status-queue
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
     networks:
       - eshop-network
 
@@ -97,8 +84,7 @@ services:
       - RabbitMQQueueName=order-service-queue
       - RabbitMQPaymentStatusQueueName=payment-status-queue
     depends_on:
-      rabbitmq:
-        condition: service_healthy
+      - rabbitmq
     networks:
       - eshop-network
 

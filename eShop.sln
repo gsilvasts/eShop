@@ -21,7 +21,12 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eShop.Payment.Worker", "src\eShopPayment\eShop.Payment.Worker\eShop.Payment.Worker.csproj", "{8A6A351E-A293-492B-BA24-0A96FB33CA29}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "eShop.Order.Worker", "src\eShopOrder\eShop.Order.Worker\eShop.Order.Worker.csproj", "{B91D2E7C-FE0D-4544-B201-A747465B5922}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "eShop.Order.Worker", "src\eShopOrder\eShop.Order.Worker\eShop.Order.Worker.csproj", "{B91D2E7C-FE0D-4544-B201-A747465B5922}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4C75F11E-4FAB-4800-963C-0E77BD23A5AB}"
+	ProjectSection(SolutionItems) = preProject
+		.env = .env
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
