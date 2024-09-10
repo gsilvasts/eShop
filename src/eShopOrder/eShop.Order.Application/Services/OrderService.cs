@@ -38,9 +38,7 @@ namespace eShop.Order.Application.Services
 
             await _orderRepository.CreateAsync(order, cancellationToken);
 
-            var guid = Guid.NewGuid().ToString();
-
-            await _messageProducer.PublishAsync(order, guid, cancellationToken);
+            await _messageProducer.PublishAsync(order, cancellationToken);
 
             return OrderToViewModel(order);
         }

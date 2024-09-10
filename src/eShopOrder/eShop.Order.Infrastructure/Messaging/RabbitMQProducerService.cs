@@ -31,12 +31,11 @@ namespace eShop.Order.Infrastructure.Messaging
                                 arguments: null);
         }
 
-        public Task PublishAsync<T>(T message, string correlationId, CancellationToken cancellationToken)
+        public Task PublishAsync<T>(T message, CancellationToken cancellationToken)
         {
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
             var properties = _channel.CreateBasicProperties();
-            properties.CorrelationId = correlationId;
 
             _channel.BasicPublish(exchange: "",
                                  routingKey: _settings.QueueName,

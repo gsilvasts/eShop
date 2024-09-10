@@ -13,7 +13,7 @@ services:
       - eshop-network
 
   rabbitmq:
-    image: rabbitmq:3.12.14-management
+    image: rabbitmq:3.13.7-management
     restart: always
     container_name: rabbitmq
     ports:
@@ -24,6 +24,11 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
     networks:
       - eshop-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   eshop.order.api:
     build:
@@ -32,8 +37,8 @@ services:
     container_name: eshoporderapi
     restart: always
     depends_on:
-      - mongodb
-      - rabbitmq
+        rabbitmq:
+         condition: service_healthy
 
     ports:
       - "8080:80"
@@ -66,7 +71,8 @@ services:
       - RabbitMQPassword=${RABBITMQ_PASSWORD}
       - RabbitMQQueueName=${RABBITMQ_PAYMENTSTATUSQUEUENAME}
     depends_on:
-      - rabbitmq
+        rabbitmq:
+          condition: service_healthy
     networks:
       - eshop-network
 
@@ -84,7 +90,8 @@ services:
       - RabbitMQQueueName=${RABBITMQ_ORDERQUEUENAME}
       - RabbitMQPaymentStatusQueueName=${RABBITMQ_PAYMENTSTATUSQUEUENAME}
     depends_on:
-      - rabbitmq
+        rabbitmq:
+          condition: service_healthy
     networks:
       - eshop-network
 
