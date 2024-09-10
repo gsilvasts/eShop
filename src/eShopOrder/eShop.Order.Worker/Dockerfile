@@ -7,7 +7,6 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["src/eShopOrder/eShop.Order.Worker/eShop.Order.Worker.csproj", "src/eShopOrder/eShop.Order.Worker/"]
-COPY ["src/eShopOrder/eShop.Order.Domain/eShop.Order.Domain.csproj", "src/eShopOrder/eShop.Order.Domain/"]
 RUN dotnet restore "./src/eShopOrder/eShop.Order.Worker/eShop.Order.Worker.csproj"
 COPY . .
 WORKDIR "/src/src/eShopOrder/eShop.Order.Worker"
